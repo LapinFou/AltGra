@@ -31,4 +31,5 @@ Le script doit être copié sur la carte SD dans le dossier suivant:
 **\SCRIPTS\TELEMETRY**
 
 Puis il faut l'activer:
+
 <img src="images/radio_telemetrie.png" />
