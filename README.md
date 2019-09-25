@@ -8,8 +8,8 @@ Fonctionnalités principales:
  * Le script se remet à zéro après un appui long sur le bouton ENT et en choisissant réinitialisation télémétrie.
  * Si l’altitude dépasse les 1000m (punaise, vous avez de bons yeux), alors l'écran se modifie afin d'afficher tout correctement (voir les captures d'écran ci-dessous).
 
-<img src="images/X9_pres.png" />
-<img src="images/X7_pres.png" />
+![Ecran de la X9](./images/X9_pres.png)
+![Ecran de la X7](./images/X7_pres.png)
 
 **Important:** ce script ne gère pas les altitudes négatives. Elles sont forcées à 0m.
 
@@ -24,12 +24,12 @@ local graphPlein = true     -- Il faut choisir "true" ou "false": true va affich
 ```
 Voilà ce qui est affiché si vous régler `graphPlein = false`
 
-<img src="images/X9_non_plein.png" />
-<img src="images/X7_non_plein.png" />
+![X9 - écran non plein](./images/X9_non_plein.png)
+![X7 - écran non plein](./images/X7_non_plein.png)
 
 Le script doit être copié sur la carte SD dans le dossier suivant:
 **\SCRIPTS\TELEMETRY**
 
 Puis il faut l'activer:
 
-<img src="images/radio_telemetrie.png" />
+![Activer la télémétrie](./images/radio_telemetrie.png)
