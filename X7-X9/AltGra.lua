@@ -86,7 +86,11 @@ local function dessinerGrille()
 			lcd.drawLine(originTps, pointAlt, originTps+largeurTps-1, pointAlt, SOLID, GREY_DEFAULT)
 		end
 		-- Dessine les points à gauche de l'axe vertical sauf pour 0 mètre
-		if ((radio == "X7") and (index ~= 1)) then
+		if (index == 0) then
+			if (radio == "X9") then
+				lcd.drawPoint(originTps-2, pointAlt)
+			end
+		else
 			lcd.drawPoint(originTps-2, pointAlt)
 		end
 	end
@@ -98,27 +102,8 @@ local function dessinerAxe()
 	lcd.drawRectangle(originTps-1, originAlt+1, largeurTps+2, -hauteurAlt, SOLID)
 end
 
--- Utiliser pour centrer l'affichage des nombres
--- Permet d'ajouter un offset pour aligner par la droite
-local function centerNbr(nbr)
-	-- Largeur en pixel de la fonte SMLSIZE
-	local largeurChiffre = 6
-	
-	if nbr >= 1000 then
-		return 2
-	elseif nbr >= 100 then
-		return 1*largeurChiffre+1
-	elseif nbr >= 10 then
-		return 2*largeurChiffre
-	else
-		return 3*largeurChiffre-1
-	end
-end
-
 -- Calcul l'altitude en mètre par pixel et affiche l'échelle à gauche du graphique
 local function dessinerEchelle()
-	-- Décalage nécessaire pour aligner les nombres sur la droite
-	local offsetNbr = 0
 	-- Index de démarrage
 	local idxStart
 
@@ -146,8 +131,7 @@ local function dessinerEchelle()
 
 	-- Mettre à jour les nombres sur l'échelle d'altitude
 	for index = idxStart, nbrLigneAlt do
-		offsetNbr = centerNbr(index*gradAlt)
-		lcd.drawNumber(offsetNbr+originTps-24, originAlt-index*nbrPixelGrad-1, index*gradAlt, SMLSIZE)
+		lcd.drawNumber(originTps-2, originAlt-index*nbrPixelGrad-1, index*gradAlt, SMLSIZE+RIGHT)
 	end
 	
 	-- Affiche l'échelle de temps en bas à droite
