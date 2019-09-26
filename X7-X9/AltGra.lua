@@ -1,5 +1,5 @@
 -- Script réalisé par LapinFou
--- Version 1.3
+-- Version 1.4
 
 -- Site web: http://opentx-doc.fr
 
