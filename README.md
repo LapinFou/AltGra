@@ -6,7 +6,7 @@ Même si le graphique n'est pas affiché à l'écran, les altitudes sont enregis
 
 Fonctionnalités principales:
  * L'axe du temps se compresse au fur et à mesure. Ainsi on peut voir toute la séance de vol.
- * Le script se remet à zéro après un appui long sur le bouton ENT et en choisissant réinitialisation télémétrie.
+ * Le script se remet à zéro après un appui long sur le bouton **ENT** et en choisissant réinitialisation télémétrie.
  * Si l’altitude dépasse les 1000m (punaise, vous avez de bons yeux), alors l'écran se modifie afin d'afficher tout correctement (voir les captures d'écran ci-dessous).
  * Sur les X9, les minutes et secondes de l'axe du temps sont affichés en bas à droite.
 
@@ -25,8 +25,8 @@ local graphPlein = true     -- Il faut choisir "true" ou "false": true va affich
 ```
 * Si besoin, il faut modifier le nom du capteur (le nom est visible dans la page télémétrie). Le nom par défaut est `Alt`.
 * En mode automatique (`altStartMode = "Auto"`), le script démarre automatiquement lorsque l'altitude dépasse `3`m (variable `altStart`).
-Le graphique se remet à zéro après un appui long sur le bouton *ENT* et en choisissant **réinitialisation télémétrie**.
-* En mode manuel, il faut choisir un interrupteur à 3 positions. Exemple avec l'inter *SE*: `altStartMode = "se"`. Dans ce mode, la variable `altStart` n'est plus utilisée.
+Le graphique se remet à zéro après un appui long sur le bouton **ENT** et en choisissant **réinitialisation télémétrie**.
+* En mode manuel, il faut choisir un interrupteur à 3 positions. Exemple avec l'inter **SE** → `altStartMode = "se"`. Dans ce mode, la variable `altStart` n'est plus utilisée.
   * SE↑ = Graphique en pause
   * SE- = Graphique en fonctionnement
   * SE↓ = Remise à zéro
