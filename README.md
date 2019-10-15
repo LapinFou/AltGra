@@ -28,7 +28,7 @@ Le graphique se remet à zéro après un appui long sur le bouton ENT et en choi
 * En mode manuel, il faut choisir un interrupteur à 3 positions. Exemple avec l'inter *SE*: `altStartMode = "se"`.
   * SE↑ = Graphique en pause
   * SE- = Graphique en fonctionnement
-  * SE↑ = Remise à zéro
+  * SE↓ = Remise à zéro
 * Si vous ne souhaitez pas que les graphiques soient pleins, alors il faut mettre la variable `graphPlein` sur `false`.
 
 
