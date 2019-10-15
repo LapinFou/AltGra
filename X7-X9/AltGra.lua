@@ -24,7 +24,6 @@ local originAlt     -- Max de l'axe représentant l'altitude en mètre (l'axe Y 
 local hauteurAlt    -- Largeur de l'axe représentant l'altitude en mètre
 
 -- Variables globales
-local radio = ""    -- Type de radio (212x64 ou 128x64)
 local nbrLigneAlt   -- Nombre de lignes horizontales
 local nbrPixelGrad  -- Nombre de pixels par graduation
 local newAlt        -- Nouvelle altitude provenant du capteur
@@ -62,13 +61,7 @@ local function init()
     startAlt = false
 
     -- Détecte le type d'écran
-    if (LCD_W == 128) then
-        radio = "X7"
-    else
-        radio = "X9"
-    end
-
-    if (radio == "X9") then
+    if (LCD_W == 212) then
         largeurTps = 160
     else
         largeurTps = 103
@@ -91,7 +84,6 @@ end
 -- ###############
 -- ## Fonctions ##
 -- ###############
-
 -- Gestion de la table d'altitude
 local function gestionTable()
     -- Obtenir la nouvelle altitude & altitude max provenant du capteur
@@ -178,14 +170,14 @@ local function dessinerGrille()
     -- Dessine les lignes horizontales
     for index = 1, nbrLigneAlt do
         pointAlt = originAlt-nbrPixelGrad*index+1
-        if (radio == "X7") then
-            lcd.drawLine(originTps, pointAlt, originTps+largeurTps-1, pointAlt, DOTTED, FORCE)
-        else
+        if (LCD_W == 212) then
             lcd.drawLine(originTps, pointAlt, originTps+largeurTps-1, pointAlt, SOLID, GREY_DEFAULT)
+        else
+            lcd.drawLine(originTps, pointAlt, originTps+largeurTps-1, pointAlt, DOTTED, FORCE)
         end
         -- Dessine les points à gauche de l'axe vertical sauf pour 0 mètre
         if (index == 0) then
-            if (radio == "X9") then
+            if (LCD_W == 212) then
                 lcd.drawPoint(originTps-2, pointAlt)
             end
         else
@@ -200,10 +192,10 @@ local function dessinerEchelle()
     local idxStart
 
     -- Ne pas afficher la 1ère valeur sur les radios X7
-    if (radio == "X7") then
-        idxStart = 2
-    else
+    if (LCD_W == 212) then
         idxStart = 1
+    else
+        idxStart = 2
     end
 
     -- Ajuster l'altitude par graduation afin d'avoir des multiples de 5 ou 10
@@ -227,7 +219,7 @@ local function dessinerEchelle()
     end
     
     -- Affiche l'échelle de temps en bas à droite
-    if (radio == "X9") then
+    if (LCD_W == 212) then
         local tmpMin = math.floor(tempsMax/60)
         local tmpSec = math.floor(tempsMax % 60)
         if (tmpSec < 10) then
@@ -245,10 +237,7 @@ local function dessinerAltitude()
 
     -- Mettre à jour les valeurs affichées
     -- Gère l'affiche de l'altitude sur 4 chiffres
-    if (radio == "X7") then
-        lcd.drawText(1,originAlt-12,"Alt:", SMLSIZE)
-        lcd.drawText(2,originAlt-5,newAlt, SMLSIZE)
-    else
+    if (LCD_W == 212) then
         if (grdeAlt == false) then 
             lcd.drawText(originTps+largeurTps+2,originAlt-60,newAlt.."m", MIDSIZE)
         else
@@ -256,6 +245,9 @@ local function dessinerAltitude()
         end
         lcd.drawText(originTps+largeurTps+2,originAlt-42,"Max:",SMLSIZE)
         lcd.drawText(originTps+largeurTps+2,originAlt-34,altMax.."m",SMLSIZE)
+    else
+        lcd.drawText(1,originAlt-12,"Alt:", SMLSIZE)
+        lcd.drawText(2,originAlt-5,newAlt, SMLSIZE)
     end
     
 
@@ -272,7 +264,7 @@ local function dessinerAltitude()
         -- Teste: affiche l'altitude si altActuel != 0 ET si l'index est inférieur à tableIndex
         if (altActuel ~= 0) and (index < tableIndex) then
             if (graphPlein == true) then
-                if (radio == "X9") then
+                if (LCD_W == 212) then
                     lcd.drawLine(originTps+index, originAlt, originTps+index, altActuel, SOLID, GREY_DEFAULT)
                 else
                     lcd.drawLine(originTps+index, originAlt, originTps+index, altActuel, SOLID, FORCE)
