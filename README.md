@@ -2,6 +2,7 @@
 Altitude Graphique - Script LUA conçu pour OpenTX 2.2 ou supérieur
 
 Ce script permet d'afficher l'altitude de façon graphique.
+Même si le graphique n'est pas affiché à l'écran, les altitudes sont renregistrées dès que les conditions de démarrage sont réunies.
 
 Fonctionnalités principales:
  * L'axe du temps se compresse au fur et à mesure. Ainsi on peut voir toute la séance de vol.
