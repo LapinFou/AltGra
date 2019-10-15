@@ -33,6 +33,7 @@ SE↑ = Remise à zéro
 
 
 Voilà ce qui est affiché si vous régler `graphPlein = false`
+
 Radios de type X9 |  Radios de type X7/X-Lite
 ------------------|--------------------------
 ![X9 - écran non plein](./images/X9_non_plein.png) | ![X7 - écran non plein](./images/X7_non_plein.png)
