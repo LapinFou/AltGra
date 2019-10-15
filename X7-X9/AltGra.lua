@@ -1,5 +1,5 @@
 -- Script réalisé par LapinFou
--- Version 1.4
+-- Version 1.5
 
 -- Site web: http://opentx-doc.fr
 
@@ -26,6 +26,7 @@ local hauteurAlt = 62   -- Largeur de l'axe représentant l'altitude en mètre
 local radio = ""
 local nbrLigneAlt = 6   -- Nombre de lignes horizontales
 local nbrPixelGrad = 0  -- Nombre de pixels par graduation
+local newAlt = 0        -- Nouvelle altitude provenant du capteur
 local maxAlt = 20       -- Altitude max affichable
 local altMax = 0        -- Altitude max envoyé par le vario
 local tableAlt = {}     -- Tableau où sont stockes toutes les altitudes
@@ -151,6 +152,22 @@ local function dessinerAltitude()
     local altActuel = 0 -- Altitude actuel
     local altPrec = 0   -- Altitude précédente
 
+    -- Mettre à jour les valeurs affichées
+    -- Gère l'affiche de l'altitude sur 4 chiffres
+    if (radio == "X7") then
+        lcd.drawText(1,originAlt-12,"Alt:", SMLSIZE)
+        lcd.drawText(2,originAlt-5,newAlt, SMLSIZE)
+    else
+        if (grdeAlt == false) then 
+            lcd.drawText(originTps+largeurTps+2,originAlt-60,newAlt.."m", MIDSIZE)
+        else
+            lcd.drawText(originTps+largeurTps+2,originAlt-60,newAlt.."m", SMLSIZE)
+        end
+        lcd.drawText(originTps+largeurTps+2,originAlt-42,"Max:",SMLSIZE)
+        lcd.drawText(originTps+largeurTps+2,originAlt-34,altMax.."m",SMLSIZE)
+    end
+    
+
     -- Dessine le graphique altitude
     for index = 0, largeurTps-1 do
         -- Converti l'altitude en pixel
@@ -186,10 +203,15 @@ end
 -- Gestion de la table d'altitude
 local function gestionTable()
     -- Obtenir la nouvelle altitude & altitude max provenant du capteur
-    local newAlt = math.floor(getValue(alt_id)+0.5)
+    newAlt = math.floor(getValue(alt_id)+0.5)
     altMax = math.floor(getValue(altMax_id)+0.5)
-    
-    -- Si l'altitude passe à 4 chifres, alors décale le tableau + réduit taille altitude
+ 
+    -- Démarre l'enregistrement
+    if (newAlt > altStart) then
+        startAlt = true
+    end
+   
+    -- Si l'altitude passe à 4 chifres, alors décaler le tableau + réduire la taille altitude actuelle
     if (altMax > 960) and (grdeAlt == false) then
         originTps = originTps+6
         grdeAlt = true
@@ -221,26 +243,6 @@ local function gestionTable()
         end
 
         tableIndex = 0
-    end
-
-    -- Mettre à jour les valeurs affichées
-    -- Gère l'affiche de l'altitude sur 4 chiffres
-    if (radio == "X7") then
-        lcd.drawText(1,originAlt-12,"Alt:", SMLSIZE)
-        lcd.drawText(2,originAlt-5,newAlt, SMLSIZE)
-    else
-        if (grdeAlt == false) then 
-            lcd.drawText(originTps+largeurTps+2,originAlt-60,newAlt.."m", MIDSIZE)
-        else
-            lcd.drawText(originTps+largeurTps+2,originAlt-60,newAlt.."m", SMLSIZE)
-        end
-        lcd.drawText(originTps+largeurTps+2,originAlt-42,"Max:",SMLSIZE)
-        lcd.drawText(originTps+largeurTps+2,originAlt-34,altMax.."m",SMLSIZE)
-    end
-    
-    -- Démarre l'enregistrement
-    if (newAlt > altStart) then
-        startAlt = true
     end
     
     if (startAlt == true) then
@@ -297,10 +299,13 @@ end
 -- #########
 -- ## Run ##
 -- #########
+local function background()
+    gestionTable()      -- Mettre à jour le tableau "altitude"
+end
+
 local function run(event)
     lcd.clear() 
     
-    gestionTable()      -- Mettre à jour le tableau "altitude"
     dessinerAxe()       -- Dessine axes (à faire en 1er)
     dessinerGrille()    -- Dessine la grille (à faire en 2nd)
     dessinerEchelle()   -- Dessine l'échelle à gauche du graphique
@@ -308,4 +313,4 @@ local function run(event)
 
 end
 
-return { init=init, run=run }
+return { init=init, background=background, run=run }
