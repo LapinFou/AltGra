@@ -91,15 +91,15 @@ end
 -- ###############
 -- Gestion de la table d'altitude
 local function gestionTable()
-    -- Obtenir la nouvelle altitude & altitude max provenant du capteur
+    -- Obtenir la nouvelle altitude provenant du capteur
     newAlt = math.floor(getValue(alt_id)+0.5)
-    altMax = math.floor(getValue(altMax_id)+0.5)
  
     -- Démarre l'enregistrement
+    -- Enregistrement contrôlé par un inter 3 positions
     if (altStartMode ~= "Auto") then
         local interPosition = getValue(inter_id)
-        -- Pause l'enregistrement
-        if (interPosition < 200) then
+        -- Met en pause l'enregistrement
+        if (interPosition < -200) then
             startAlt = false
         -- Remise à zéro
         elseif (interPosition > 200) then
@@ -108,19 +108,26 @@ local function gestionTable()
         else
             startAlt = true
         end
+    -- Enregistrement et remise à zéro en mode automatiquement
     else
         -- Démarre l'enregistrement des altitudes
         if (newAlt > altStart) then
             startAlt = true
         end
 
-        -- Si altMax = 0 ET que l'enregistrement était en cours, alors la télémétrie a été remise à zéro
-        if ((altMax == 0) and (startAlt == true)) then
+        -- Si l'altitude max provenant du capteur ET que l'enregistrement est en cours, alors la télémétrie a été remise à zéro
+        if (((math.floor(getValue(altMax_id)+0.5)) == 0) and (startAlt == true)) then
             init()
         end
     end
    
+    -- Enregistrement des données
     if (startAlt == true) then
+        -- Mettre à jour l'altitude max
+        if (newAlt > altMax) then
+            altMax = newAlt
+        end
+
         -- Si l'altitude passe à 4 chifres, alors décaler le tableau + réduire la taille altitude actuelle
         if ((altMax > 960) and (grdeAlt == false)) then
             originTps = originTps+6
