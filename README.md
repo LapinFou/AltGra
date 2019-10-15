@@ -8,7 +8,7 @@ Fonctionnalités principales:
  * L'axe du temps se compresse au fur et à mesure. Ainsi on peut voir toute la séance de vol.
  * Le script se remet à zéro après un appui long sur le bouton **ENT** et en choisissant réinitialisation télémétrie.
  * Si l’altitude dépasse les 1000m (punaise, vous avez de bons yeux), alors l'écran se modifie afin d'afficher tout correctement (voir les captures d'écran ci-dessous).
- * Sur les X9, les minutes et secondes de l'axe du temps sont affichés en bas à droite.
+ * Sur les X9, les minutes et secondes de l'axe du temps sont affichées en bas à droite.
 
 Radios de type X9 |  Radios de type X7/X-Lite
 ------------------|--------------------------
