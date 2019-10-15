@@ -7,8 +7,8 @@
 -- ## A MODIFIER SI BESOIN ##
 -- ##########################
 local nomVario = "Alt"      -- Nom de votre capteur d'altitude (il est défini dans votre page télémétrie)
-local altStartMode = "Auto" -- "Auto" utilise le parmètre ci-dessous, sinon utilise l'inter spécifié ici
 local altStart = 3          -- Démarre l'enregistrement si l'altitude est supérieure (valeur en mètre)
+local altStartMode = "Auto" -- Si "Auto" alors 'altStart' est utilisé, sinon choisir un inter 3 positions (par ex: "sb")
 local graphPlein = true     -- Il faut choisir "true" ou "false": true va afficher le graphique en plein
 
 -- #####################################
@@ -16,6 +16,7 @@ local graphPlein = true     -- Il faut choisir "true" ou "false": true va affich
 -- #####################################
 local alt_id = getFieldInfo(nomVario).id
 local altMax_id = getFieldInfo(nomVario.."+").id
+local inter_id
 
 -- Défini la taille d'affichage du graphique pour l'altitude: coordonnée en haut à gauche = (0,0)
 local originTps     -- Origine de l'axe représentant le temps en seconde
@@ -44,6 +45,10 @@ local startAlt      -- Démarre l'enregistrement
 -- ## Init ##
 -- ##########
 local function init()
+    if (altStartMode ~= "Auto") then
+        inter_id = getFieldInfo(altStartMode).id
+    end
+
     -- Valeurs par défaut
     originTps = 18
     originAlt = 62
@@ -91,33 +96,49 @@ local function gestionTable()
     altMax = math.floor(getValue(altMax_id)+0.5)
  
     -- Démarre l'enregistrement
-    if (newAlt > altStart) then
-        startAlt = true
+    if (altStartMode ~= "Auto") then
+        local interPosition = getValue(inter_id)
+        -- Pause l'enregistrement
+        if (interPosition < 200) then
+            startAlt = false
+        -- Remise à zéro
+        elseif (interPosition > 200) then
+            init()
+        -- Démarrer l'enregistrement
+        else
+            startAlt = true
+        end
+    else
+        -- Démarre l'enregistrement des altitudes
+        if (newAlt > altStart) then
+            startAlt = true
+        end
+
+        -- Si altMax = 0 ET que l'enregistrement était en cours, alors la télémétrie a été remise à zéro
+        if ((altMax == 0) and (startAlt == true)) then
+            init()
+        end
     end
    
-    -- Si l'altitude passe à 4 chifres, alors décaler le tableau + réduire la taille altitude actuelle
-    if (altMax > 960) and (grdeAlt == false) then
-        originTps = originTps+6
-        grdeAlt = true
-    -- Si altMax = 0 ET que l'enregistrement était en cours, alors la télémétrie a été remise à zéro
-    elseif (altMax == 0) and (startAlt == true) then
-        -- Init tous les paramètres à l'origine
-        init()
-    end
-    
     if (startAlt == true) then
+        -- Si l'altitude passe à 4 chifres, alors décaler le tableau + réduire la taille altitude actuelle
+        if ((altMax > 960) and (grdeAlt == false)) then
+            originTps = originTps+6
+            grdeAlt = true
+        end
+    
         -- Obtenir le temps de la radio (en 1/100 de seconde)
         local tpsActuel = getTime()
         
         -- Mettre à jour l'altitude max si la nouvelle altitude est supérieure
-        if newAlt > maxAlt then
+        if (newAlt > maxAlt) then
             maxAlt = newAlt
         end
         
         -- Si la différence de temps par rapport à la dernière mesure est > à secParPix, alors mettre à jour le tableau
-        if (tpsActuel-tpsPrec) > secParPix then
+        if ((tpsActuel-tpsPrec) > secParPix) then
             -- Filtre les altitudes négatives
-            if newAlt < 0 then
+            if (newAlt < 0) then
                 tableAlt[tableIndex] = 0
             else
                 tableAlt[tableIndex] = newAlt
@@ -130,13 +151,13 @@ local function gestionTable()
         end
     
         -- Compresser le tableau lorsqu'il est rempli
-        if tableIndex > largeurTps  then
+        if (tableIndex > largeurTps) then
             -- Index temporaire
             local tmpIdx = 0
             
             -- Efface 1 case sur compTemps
             for index = 0, largeurTps do
-                if index % compTemps ~= 0 then
+                if ((index % compTemps) ~= 0) then
                     tableAlt[tmpIdx] = tableAlt[index]
                     tmpIdx = tmpIdx+1
                 end
@@ -200,7 +221,7 @@ local function dessinerEchelle()
 
     -- Ajuster l'altitude par graduation afin d'avoir des multiples de 5 ou 10
     while maxAlt > (nbrLigneAlt*gradAlt) do
-        if gradAlt >= 30 then
+        if (gradAlt >= 30) then
             gradAlt = gradAlt+10
         else
             gradAlt = gradAlt+5
@@ -223,9 +244,9 @@ local function dessinerEchelle()
         local tmpMin = math.floor(tempsMax/60)
         local tmpSec = math.floor(tempsMax % 60)
         if (tmpSec < 10) then
-            lcd.drawText(originTps+largeurTps+5,originAlt-5,tmpMin..":0"..tmpSec,SMLSIZE)
+            lcd.drawText(originTps+largeurTps+5, originAlt-5, tmpMin..":0"..tmpSec, SMLSIZE)
         else
-            lcd.drawText(originTps+largeurTps+5,originAlt-5,tmpMin..":"..tmpSec,SMLSIZE)
+            lcd.drawText(originTps+largeurTps+5, originAlt-5, tmpMin..":"..tmpSec, SMLSIZE)
         end
     end
 end
@@ -256,13 +277,13 @@ local function dessinerAltitude()
         -- Converti l'altitude en pixel
         altActuel = originAlt-tableAlt[index]*pixelParMetre+1
         -- Si l'altitude est inférieur à 1 pixel, alors affiche 1 seul pixel (NB: l'axe Y fonctionne à l'envers)
-        if altActuel > originAlt then
+        if (altActuel > originAlt) then
             altActuel = originAlt
         end
 
         -- Affiche la barre verticale en gris
         -- Teste: affiche l'altitude si altActuel != 0 ET si l'index est inférieur à tableIndex
-        if (altActuel ~= 0) and (index < tableIndex) then
+        if ((altActuel ~= 0) and (index < tableIndex)) then
             if (graphPlein == true) then
                 if (LCD_W == 212) then
                     lcd.drawLine(originTps+index, originAlt, originTps+index, altActuel, SOLID, GREY_DEFAULT)
@@ -299,4 +320,4 @@ local function run(event)
     dessinerAltitude()  -- Dessine les altitudes
 end
 
-return { init=init, background=background, run=run }
+return {init=init, background=background, run=run}
