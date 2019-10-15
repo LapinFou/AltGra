@@ -15,17 +15,24 @@ Radios de type X9 |  Radios de type X7/X-Lite
 
 **Important:** ce script ne gère pas les altitudes négatives. Elles sont forcées à 0m.
 
-Le script démarre automatiquement lorsque l'altitude dépasse 3m (réglable dans le script).
-
-Si besoin, il faut modifier le nom du capteur (le nom est visible dans la page télémétrie). Le nom par défaut est "Alt".
-Si vous ne souhaitez pas que les graphiques soient pleins, alors il faut mettre la variable graphPlein sur false.
+Voici les variables à modifier afin de personnaliser le fonctionnement du script:
 ```
 local nomVario = "Alt"      -- Nom de votre capteur d'altitude (il est défini dans votre page télémétrie)
 local altStart = 3          -- Démarre l'enregistrement si l'altitude est supérieure (valeur en mètre)
+local altStartMode = "Auto" -- Si "Auto" alors 'altStart' est utilisé, sinon choisir un inter 3 positions (par ex: "sb")
 local graphPlein = true     -- Il faut choisir "true" ou "false": true va afficher le graphique en plein
 ```
-Voilà ce qui est affiché si vous régler `graphPlein = false`
+* Si besoin, il faut modifier le nom du capteur (le nom est visible dans la page télémétrie). Le nom par défaut est `Alt`.
+* En mode automatique (`altStartMode = "Auto"`), le script démarre automatiquement lorsque l'altitude dépasse `3`m (variable `altStart`).
+Le graphique se remet à zéro après un appui long sur le bouton ENT et en choisissant **réinitialisation télémétrie**.
+* En mode manuel, il faut choisire un interrupteur à 3 positions. Exemple avec l'inter *SE*: `altStartMode = "se"`.
+SE↑ = Graphique en pause
+SE- = Graphique en fonctionnement
+SE↑ = Remise à zéro
+* Si vous ne souhaitez pas que les graphiques soient pleins, alors il faut mettre la variable `graphPlein` sur `false`.
 
+
+Voilà ce qui est affiché si vous régler `graphPlein = false`
 Radios de type X9 |  Radios de type X7/X-Lite
 ------------------|--------------------------
 ![X9 - écran non plein](./images/X9_non_plein.png) | ![X7 - écran non plein](./images/X7_non_plein.png)
