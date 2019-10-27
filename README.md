@@ -45,3 +45,6 @@ Le script doit être copié sur la carte SD dans le dossier suivant:
 Puis il faut l'activer:
 
 ![Activer la télémétrie](./images/radio_telemetrie.png)
+
+Si le coeur vous en dit:
+![url=https://www.paypal.me/Seb14](./images/donate_lapinfou.png)
