@@ -1,5 +1,5 @@
 -- Script réalisé par LapinFou
--- Version 1.7
+-- Version 1.8
 
 -- Site web: http://opentx-doc.fr
 
@@ -28,8 +28,8 @@ local hauteurAlt    -- Largeur de l'axe représentant l'altitude en mètre
 local nbrLigneAlt   -- Nombre de lignes horizontales
 local nbrPixelGrad  -- Nombre de pixels par graduation
 local newAlt        -- Nouvelle altitude provenant du capteur
-local maxAlt        -- Altitude max affichable
-local altMax        -- Altitude max envoyé par le vario
+local maxAltAffi    -- Altitude max affichable
+local altMax        -- Altitude max reçue par le vario
 local tableAlt = {} -- Tableau où sont stockes toutes les altitudes
 local tableIndex    -- Index indiquant jusqu'où est rempli le tableau
 local gradAlt       -- Altitude pour 1 graduation
@@ -55,7 +55,7 @@ local function init()
     hauteurAlt = 62
     nbrLigneAlt = 6
     newAlt = 0
-    maxAlt = 20
+    maxAltAffi = 20
     altMax = 0
     tableIndex = 0
     gradAlt = 5
@@ -140,8 +140,8 @@ local function gestionTable()
         local tpsActuel = getTime()
         
         -- Mettre à jour l'altitude max si la nouvelle altitude est supérieure
-        if (newAlt > maxAlt) then
-            maxAlt = newAlt
+        if (newAlt > maxAltAffi) then
+            maxAltAffi = newAlt
         end
         
         -- Si la différence de temps par rapport à la dernière mesure est > à secParPix, alors mettre à jour le tableau
@@ -229,7 +229,7 @@ local function dessinerEchelle()
     end
 
     -- Ajuster l'altitude par graduation afin d'avoir des multiples de 5 ou 10
-    while maxAlt > (nbrLigneAlt*gradAlt) do
+    while maxAltAffi > (nbrLigneAlt*gradAlt) do
         if (gradAlt >= 30) then
             gradAlt = gradAlt+10
         else
