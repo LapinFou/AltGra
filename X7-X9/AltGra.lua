@@ -1,5 +1,5 @@
 -- Script réalisé par LapinFou
--- Version 1.6
+-- Version 1.7
 
 -- Site web: http://opentx-doc.fr
 
@@ -116,7 +116,9 @@ local function gestionTable()
         end
 
         -- Si l'altitude max provenant du capteur ET que l'enregistrement est en cours, alors la télémétrie a été remise à zéro
-        if (((math.floor(getValue(altMax_id)+0.5)) == 0) and (startAlt == true)) then
+        -- En cas de perte de télémétrie, getValue() renvoie 0
+        -- Donc, il faut vérifier que la télémétrie est OK avec getRSSI()
+        if (((math.floor(getValue(altMax_id)+0.5)) == 0) and (startAlt == true) and (getRSSI() ~= 0)) then
             init()
         end
     end
