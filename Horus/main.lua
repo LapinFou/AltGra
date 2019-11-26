@@ -5,100 +5,125 @@
 
 -- ## Options modifiable depuis l'interface Widget OpenTX
 local defaultOptions = {
-  { "ControlX", SOURCE, 1 },
-  { "ScrollZ", BOOL, 1 }, -- BOOL is actually not a boolean, but toggles between 0 and 1
-  { "StepZ", VALUE, 1, 0, 10},
-  { "COLOR", COLOR, RED },
+  { "Capteur", SOURCE, "Alt" },
+  { "Auto",    BOOL,   1 },
+  { "Inter",   SOURCE, 0 },
+  { "Plein",   BOOL,   1 },
+  { "COLOR",   COLOR,  RED },
 }
 
-
-local function createWidget(zone, options)
+-- ##############
+-- ## Création ##
+-- ##############
+local function creationWidget(zone, options)
   local parameters = {}
   
-  -- ##########################
-  -- ## A MODIFIER SI BESOIN ##
-  -- ##########################
-  parameters.nomVario = "Alt"      -- Nom de votre capteur d'altitude (il est défini dans votre page télémétrie)
-  parameters.altStart = 3          -- Démarre l'enregistrement si l'altitude est supérieure (valeur en mètre)
-  parameters.altStartMode = "Auto" -- Si "Auto" alors 'altStart' est utilisé, sinon choisir un inter 3 positions (par ex: "sb")
-  parameters.graphPlein = true     -- Il faut choisir "true" ou "false": true va afficher le graphique en plein
+  -- Nom de votre capteur d'altitude (il est défini dans votre page télémétrie)
+  parameters.nomVario = options.Capteur
+  parameters.alt_id = getFieldInfo(parameters.nomVario).id
+  parameters.altMax_id = getFieldInfo(parameters.nomVario.."+").id
   
-  -- #####################################
-  -- ## NE RIEN MODIFIER A PARTIR D'ICI ##
-  -- #####################################
-  parameters.alt_id = getFieldInfo(nomVario).id
-  parameters.altMax_id = getFieldInfo(nomVario.."+").id
-  parameters.inter_id
+  -- Démarre l'enregistrement si l'altitude est supérieure (valeur en mètre)
+  parameters.altStart = 3
+  
+  -- Si "Auto" alors 'altStart' est utilisé, sinon choisir un inter 3 positions (par ex: "sb")
+  if (options.Auto == 0) then
+    parameters.altStartMode = options.Auto
+    parameters.inter_id = getFieldInfo(parameters.altStartMode).id
+  else
+    parameters.altStartMode = "Auto"
+  end
+  
+  -- Il faut choisir "true" ou "false": true va afficher le graphique en plein
+  if (options.Plein == 0) then
+    parameters.graphPlein = false
+  else
+    parameters.graphPlein = true
+  end
   
   -- Défini la taille d'affichage du graphique pour l'altitude: coordonnée en haut à gauche = (0,0)
-  parameters.originTps     -- Origine de l'axe représentant le temps en seconde
-  parameters.largeurTps    -- Largeur de l'axe représentant le temps en seconde
-  parameters.originAlt     -- Max de l'axe représentant l'altitude en mètre (l'axe Y est inversé !!)
-  parameters.hauteurAlt    -- Largeur de l'axe représentant l'altitude en mètre
+  parameters.originTps = 18     -- Origine de l'axe représentant le temps en seconde
+  parameters.largeurTps = 160   -- Largeur de l'axe représentant le temps en seconde
+  parameters.originAlt  = 62    -- Max de l'axe représentant l'altitude en mètre (l'axe Y est inversé !!)
+  parameters.hauteurAlt = 62    -- Largeur de l'axe représentant l'altitude en mètre
   
   -- Variables globales
-  parameters.nbrLigneAlt   -- Nombre de lignes horizontales
-  parameters.nbrPixelGrad  -- Nombre de pixels par graduation
-  parameters.newAlt        -- Nouvelle altitude provenant du capteur
-  parameters.maxAltAffi    -- Altitude max affichable
-  parameters.altMax        -- Altitude max reçue par le vario
-  parameters.tableAlt = {} -- Tableau où sont stockes toutes les altitudes
-  parameters.tableIndex    -- Index indiquant jusqu'où est rempli le tableau
-  parameters.gradAlt       -- Altitude pour 1 graduation
-  parameters.pixelParMetre -- Valeur en mètre d'un pixel sur l'axe Y
-  parameters.secParPix     -- Nombre de seconde par pixel sur l'axe X
-  parameters.tempsMax      -- Init du temps max en seconde
-  parameters.tpsPrec       -- Temps de la dernière mise à jour du tableau
-  parameters.compTemps     -- Compression du temps compTemps/(compTemps-1) - La valeur mini est 2
-  parameters.grdeAlt       -- Décalage du graphique vers la droite si l'altitude est supérieure à 960m
-  parameters.startAlt      -- Démarre l'enregistrement
+  parameters.nbrLigneAlt = 6   -- Nombre de lignes horizontales
+  parameters.nbrPixelGrad = 0  -- Nombre de pixels par graduation
+  parameters.newAlt = 0        -- Nouvelle altitude provenant du capteur
+  parameters.maxAltAffi = 20   -- Altitude max affichable
+  parameters.altMax = 0        -- Altitude max reçue par le vario
+  parameters.tableAlt = {}     -- Tableau où sont stockes toutes les altitudes
+  parameters.tableIndex = 0    -- Index indiquant jusqu'où est rempli le tableau
+  parameters.gradAlt = 5       -- Altitude pour 1 graduation
+  parameters.pixelParMetre = 0 -- Valeur en mètre d'un pixel sur l'axe Y
+  parameters.secParPix = 0     -- Nombre de seconde par pixel sur l'axe X
+  parameters.tempsMax = 20     -- Init du temps max en seconde
+  parameters.tpsPrec = 0       -- Temps de la dernière mise à jour du tableau
+  parameters.compTemps = 6     -- Compression du temps compTemps/(compTemps-1) - La valeur mini est 2
+  parameters.grdeAlt = false   -- Décalage du graphique vers la droite si l'altitude est supérieure à 960m
+  parameters.startAlt = false  -- Démarre l'enregistrement
+
+  -- Init le nombre de seconde par pixel sur l'axe X
+  parameters.secParPix = 100*parameters.tempsMax/parameters.largeurTps
+  
+  -- Calcul nombre de pixel pour 1 graduation (arrondi inférieur)
+  parameters.nbrPixelGrad = math.floor(parameters.hauteurAlt/parameters.nbrLigneAlt)
+  -- Mettre à jour l'échelle de l'axe altitude
+  parameters.pixelParMetre = parameters.nbrPixelGrad/parameters.gradAlt
+
+  -- Init du tableau à 0
+  for index = 0, parameters.largeurTps-1 do
+      parameters.tableAlt[index] = 0
+  end
 
   return { zone=zone, options=options , params = parameters }
 end
 
--- ##########
--- ## Init ##
--- ##########
-local function init()
-    if (altStartMode ~= "Auto") then
-        inter_id = getFieldInfo(altStartMode).id
-    end
+-- ###########################
+-- ## Mise à jour du Widget ##
+-- ###########################
+local function majWidget(widgetToUpdate, newOptions)
+  -- Nom de votre capteur d'altitude (il est défini dans votre page télémétrie)
+  widgetToUpdate.params.nomVario = newOptions.Capteur
+  widgetToUpdate.params.alt_id = getFieldInfo(widgetToUpdate.params.nomVario).id
+  widgetToUpdate.params.altMax_id = getFieldInfo(widgetToUpdate.params.nomVario.."+").id
+  
+  -- Si "Auto" alors 'altStart' est utilisé, sinon choisir un inter 3 positions (par ex: "sb")
+  if (newOptions.Auto == 0) then
+    widgetToUpdate.params.altStartMode = newOptions.Auto
+    widgetToUpdate.params.inter_id = getFieldInfo(widgetToUpdate.params.altStartMode).id
+  else
+    widgetToUpdate.params.altStartMode = "Auto"
+  end
+  
+  -- Il faut choisir "true" ou "false": true va afficher le graphique en plein
+  if (newOptions.Plein == 0) then
+    widgetToUpdate.params.graphPlein = false
+  else
+    widgetToUpdate.params.graphPlein = true
+  end
+  
+  -- Init le nombre de seconde par pixel sur l'axe X
+  widgetToUpdate.params.secParPix = 100*widgetToUpdate.params.tempsMax/widgetToUpdate.params.largeurTps
+  
+  -- Calcul nombre de pixel pour 1 graduation (arrondi inférieur)
+  widgetToUpdate.params.nbrPixelGrad = math.floor(widgetToUpdate.params.hauteurAlt/widgetToUpdate.params.nbrLigneAlt)
+  -- Mettre à jour l'échelle de l'axe altitude
+  widgetToUpdate.params.pixelParMetre = widgetToUpdate.params.nbrPixelGrad/widgetToUpdate.params.gradAlt
 
-    -- Valeurs par défaut
-    originTps = 18
-    originAlt = 62
-    hauteurAlt = 62
-    nbrLigneAlt = 6
-    newAlt = 0
-    maxAltAffi = 20
-    altMax = 0
-    tableIndex = 0
-    gradAlt = 5
-    tempsMax = 20
-    tpsPrec = 0
-    compTemps = 6
-    grdeAlt = false
-    startAlt = false
+  -- Init du tableau à 0
+  for index = 0, widgetToUpdate.params.largeurTps-1 do
+      widgetToUpdate.params.tableAlt[index] = 0
+  end
 
-    -- Détecte le type d'écran
-    if (LCD_W == 212) then
-        largeurTps = 160
-    else
-        largeurTps = 103
-    end
+end
 
-    -- Init le nombre de seconde par pixel sur l'axe X
-    secParPix = 100*tempsMax/largeurTps
-    
-    -- Calcul nombre de pixel pour 1 graduation (arrondi inférieur)
-    nbrPixelGrad = math.floor(hauteurAlt/nbrLigneAlt)
-    -- Mettre à jour l'échelle de l'axe altitude
-    pixelParMetre = nbrPixelGrad/gradAlt
 
-    -- Init du tableau à 0
-    for index = 0, largeurTps-1 do
-        tableAlt[index] = 0
-    end
+local function tacheDeFondWidget(widgetToProcessInBackground)
+end
+
+local function rafraichitWidget(widgetToRefresh)
 end
 
 -- ###############
@@ -328,20 +353,4 @@ local function dessinerAltitude()
     end
 end
 
--- #########
--- ## Run ##
--- #########
-local function background()
-    gestionTable()      -- Mettre à jour le tableau "altitude"
-end
-
-local function run(event)
-    lcd.clear() 
-    
-    dessinerAxe()       -- Dessine axes (à faire en 1er)
-    dessinerGrille()    -- Dessine la grille (à faire en 2nd)
-    dessinerEchelle()   -- Dessine l'échelle à gauche du graphique
-    dessinerAltitude()  -- Dessine les altitudes
-end
-
-return {init=init, background=background, run=run}
+return { name="AltGra", options=defaultOptions, create=creationWidget, update=majWidget, background=tacheDeFondWidget, refresh=rafraichitWidget }
